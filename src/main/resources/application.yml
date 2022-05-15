@@ -6,3 +6,8 @@ spring:
     name: spring security
   thymeleaf:
     cache: true
+  security:
+    user:
+      name: user
+      password: user123
+      roles: USER

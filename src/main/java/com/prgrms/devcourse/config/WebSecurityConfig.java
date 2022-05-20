@@ -4,13 +4,17 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.expression.SecurityExpressionHandler;
+import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.AccessDeniedHandler;
 
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +29,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		auth.inMemoryAuthentication()
 			.withUser("user").password("{noop}user123").roles("USER")
 			.and()
-			.withUser("admin").password("{noop}admin123").roles("ADMIN")
+			.withUser("admin01").password("{noop}admin123").roles("ADMIN")
+			.and()
+			.withUser("admin02").password("{noop}admin123").roles("ADMIN")
 		;
 	}
 
@@ -48,13 +54,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		};
 	}
 
+	public SecurityExpressionHandler<FilterInvocation> securityExceptionHandler() {
+		return new CustomWebSecurityExpressionHandler(
+			new AuthenticationTrustResolverImpl(),
+			"ROLE_"
+		);
+	}
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 			.authorizeRequests()
 				.antMatchers("/me").hasAnyRole("USER", "ADMIN")
-				.antMatchers("/admin").access("isFullyAuthenticated() and hasRole('ADMIN')")
+				.antMatchers("/admin").access("isFullyAuthenticated() and hasRole('ADMIN') and oddAdmin")
 				.anyRequest().permitAll()
+				.expressionHandler(securityExceptionHandler())
 				.and()
 			.formLogin()
 				.defaultSuccessUrl("/")

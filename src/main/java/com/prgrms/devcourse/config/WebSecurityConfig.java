@@ -81,6 +81,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 			.exceptionHandling()
 				.accessDeniedHandler(accessDeniedHandler())
 				.and()
+			.sessionManagement()
+				.sessionFixation().changeSessionId()
+				.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+				.invalidSessionUrl("/")
+				.maximumSessions(1)
+					.maxSessionsPreventsLogin(false)
+				.and()
 		;
 	}
 }

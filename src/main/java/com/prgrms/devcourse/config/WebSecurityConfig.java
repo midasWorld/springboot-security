@@ -1,10 +1,16 @@
 package com.prgrms.devcourse.config;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.expression.SecurityExpressionHandler;
+import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,6 +22,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.access.expression.WebExpressionVoter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -61,14 +69,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		);
 	}
 
+	@Bean
+	public AccessDecisionManager accessDecisionManager() {
+		List<AccessDecisionVoter<?>> voters = new ArrayList<>();
+		voters.add(new WebExpressionVoter());
+		voters.add(new OddAdminVoter(new AntPathRequestMatcher("/admin")));
+		return new UnanimousBased(voters);
+	}
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 			.authorizeRequests()
+				.accessDecisionManager(accessDecisionManager())
 				.antMatchers("/me").hasAnyRole("USER", "ADMIN")
-				.antMatchers("/admin").access("isFullyAuthenticated() and hasRole('ADMIN') and oddAdmin")
+				.antMatchers("/admin").access("isFullyAuthenticated() and hasRole('ADMIN')")
 				.anyRequest().permitAll()
-				.expressionHandler(securityExceptionHandler())
 				.and()
 			.formLogin()
 				.defaultSuccessUrl("/")

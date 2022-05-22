@@ -19,7 +19,7 @@ public class CustomWebSecurityExpressionRoot extends WebSecurityExpressionRoot {
 	}
 
 	public boolean isOddAdmin() {
-		User user = (User) getAuthentication().getPrincipal();
+		User user = (User)getAuthentication().getPrincipal();
 		String name = user.getUsername();
 		Matcher matcher = PATTERN.matcher(name);
 		if (matcher.find()) {

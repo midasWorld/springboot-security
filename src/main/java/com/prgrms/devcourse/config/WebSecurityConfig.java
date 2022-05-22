@@ -35,11 +35,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 		auth.inMemoryAuthentication()
-			.withUser("user").password("{noop}user123").roles("USER")
-			.and()
-			.withUser("admin01").password("{noop}admin123").roles("ADMIN")
-			.and()
-			.withUser("admin02").password("{noop}admin123").roles("ADMIN")
+				.withUser("user").password("{noop}user123").roles("USER")
+				.and()
+				.withUser("admin01").password("{noop}admin123").roles("ADMIN")
+				.and()
+				.withUser("admin02").password("{noop}admin123").roles("ADMIN")
 		;
 	}
 
@@ -55,7 +55,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 			Object principal = authentication != null ? authentication.getPrincipal() : null;
 			log.warn("{} is denied", principal, e);
 			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-			response.setContentType("text/plain");					// 평문을 리턴
+			response.setContentType("text/plain");          // 평문을 리턴
 			response.getWriter().write("## ACCESS DENIED ##");
 			response.getWriter().flush();
 			response.getWriter().close();
@@ -64,8 +64,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	public SecurityExpressionHandler<FilterInvocation> securityExceptionHandler() {
 		return new CustomWebSecurityExpressionHandler(
-			new AuthenticationTrustResolverImpl(),
-			"ROLE_"
+				new AuthenticationTrustResolverImpl(),
+				"ROLE_"
 		);
 	}
 
@@ -80,43 +80,43 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
-			.authorizeRequests()
+				.authorizeRequests()
 				.accessDecisionManager(accessDecisionManager())
 				.antMatchers("/me").hasAnyRole("USER", "ADMIN")
 				.antMatchers("/admin").access("isFullyAuthenticated() and hasRole('ADMIN')")
 				.anyRequest().permitAll()
 				.and()
-			.formLogin()
+				.formLogin()
 				.defaultSuccessUrl("/")
 				.permitAll()
 				.and()
-			.logout()
+				.logout()
 				.logoutUrl("/logout")
 				.logoutSuccessUrl("/")
 				.and()
-			.rememberMe()
+				.rememberMe()
 				.rememberMeParameter("remember-me")
 				.tokenValiditySeconds(300)
 				.and()
-			/**
-			 * HTTP 요청을 HTTPS 요청으로 리다이렉트
-			 */
-			// .requiresChannel()
-			// 	.anyRequest().requiresSecure()
-			// 	.and()
-			.anonymous()
+				/**
+				 * HTTP 요청을 HTTPS 요청으로 리다이렉트
+				 */
+				// .requiresChannel()
+				// 	.anyRequest().requiresSecure()
+				// 	.and()
+				.anonymous()
 				.principal("thisIsAnonymousUser")
 				.authorities("ROLE_ANONYMOUS", "ROLE_UNKNOWN")
 				.and()
-			.exceptionHandling()
+				.exceptionHandling()
 				.accessDeniedHandler(accessDeniedHandler())
 				.and()
-			.sessionManagement()
+				.sessionManagement()
 				.sessionFixation().changeSessionId()
 				.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
 				.invalidSessionUrl("/")
 				.maximumSessions(1)
-					.maxSessionsPreventsLogin(false)
+				.maxSessionsPreventsLogin(false)
 				.and()
 		;
 	}

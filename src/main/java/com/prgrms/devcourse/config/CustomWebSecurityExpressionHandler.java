@@ -18,8 +18,8 @@ public class CustomWebSecurityExpressionHandler extends AbstractSecurityExpressi
 
 	@Override
 	protected SecurityExpressionOperations createSecurityExpressionRoot(
-		Authentication authentication,
-		FilterInvocation fi
+			Authentication authentication,
+			FilterInvocation fi
 	) {
 		CustomWebSecurityExpressionRoot root = new CustomWebSecurityExpressionRoot(authentication, fi);
 		root.setPermissionEvaluator(this.getPermissionEvaluator());

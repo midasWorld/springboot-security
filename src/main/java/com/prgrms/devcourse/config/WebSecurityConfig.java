@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +24,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -54,19 +57,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Override
-	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		auth.inMemoryAuthentication()
-				.withUser("user").password("{noop}user123").roles("USER")
-				.and()
-				.withUser("admin01").password("{noop}admin123").roles("ADMIN")
-				.and()
-				.withUser("admin02").password("{noop}admin123").roles("ADMIN")
-		;
-	}
-
-	@Override
 	public void configure(WebSecurity web) throws Exception {
 		web.ignoring().antMatchers("/assets/**", "/h2-console/**");
+	}
+
+	@Bean
+	public UserDetailsService userDetailsService(DataSource dataSource) {
+		JdbcDaoImpl jdbcDao = new JdbcDaoImpl();
+		jdbcDao.setDataSource(dataSource);
+		return jdbcDao;
 	}
 
 	@Bean

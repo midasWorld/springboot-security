@@ -1,5 +1,7 @@
 package com.prgrms.devcourse.user;
 
+import java.util.Optional;
+
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,5 +25,10 @@ public class UserService {
 			.orElseThrow(() -> new UsernameNotFoundException("Could not found user for " + username));
 		user.checkPassword(passwordEncoder, credentials);
 		return user;
+	}
+
+	@Transactional(readOnly = true)
+	public Optional<User> findByLoginId(String loginId) {
+		return userRepository.findByLoginId(loginId);
 	}
 }

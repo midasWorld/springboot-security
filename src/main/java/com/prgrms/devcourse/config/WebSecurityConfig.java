@@ -6,6 +6,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +27,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -38,6 +41,39 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+	private DataSource dataSource;
+
+	@Autowired
+	public void setDataSource(DataSource dataSource) {
+		this.dataSource = dataSource;
+	}
+
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.jdbcAuthentication()
+			.dataSource(dataSource)
+			.usersByUsernameQuery(
+				"SELECT " +
+					"login_id, passwd, true " +
+				"FROM " +
+					"USERS " +
+				"WHERE " +
+					"login_id = ?"
+			)
+			.groupAuthoritiesByUsername(
+				"SELECT " +
+					"login_id, g.name, p.name " +
+				"FROM " +
+					"users u JOIN groups g ON u.group_id = g.id " +
+				"LEFT JOIN group_permission gp ON g.id = gp.group_id " +
+					"JOIN permissions p ON p.id = gp.permission_id " +
+				"WHERE " +
+					"u.login_id = ?"
+			)
+			.getUserDetailsService().setEnableAuthorities(false)
+		;
+	}
 
 	@Bean
 	@Qualifier("myAsyncTaskExecutor")
@@ -62,10 +98,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean
-	public UserDetailsService userDetailsService(DataSource dataSource) {
-		JdbcDaoImpl jdbcDao = new JdbcDaoImpl();
-		jdbcDao.setDataSource(dataSource);
-		return jdbcDao;
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
 	}
 
 	@Bean

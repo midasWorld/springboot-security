@@ -22,11 +22,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
@@ -35,6 +32,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import com.prgrms.devcourse.jwt.Jwt;
 import com.prgrms.devcourse.user.UserService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +44,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	private DataSource dataSource;
 	private UserService userService;
+	private JwtConfig jwtConfig;
+
+	@Autowired
+	public void setJwtConfig(JwtConfig jwtConfig) {
+		this.jwtConfig = jwtConfig;
+	}
 
 	@Autowired
 	public void setDataSource(DataSource dataSource) {
@@ -118,27 +122,35 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		return new UnanimousBased(voters);
 	}
 
+	@Bean
+	public Jwt jwt() {
+		return new Jwt(
+			jwtConfig.getIssuer(),
+			jwtConfig.getClientSecret(),
+			jwtConfig.getExpirySeconds()
+		);
+	}
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 				.authorizeRequests()
 					.accessDecisionManager(accessDecisionManager())
-					.antMatchers("/me").hasAnyRole("USER", "ADMIN")
-					.antMatchers("/admin").access("isFullyAuthenticated() and hasRole('ADMIN')")
+					.antMatchers("/api/user/me").hasAnyRole("USER", "ADMIN")
 					.anyRequest().permitAll()
 					.and()
+				.csrf()
+					.disable()
+				.headers()
+					.disable()
 				.formLogin()
-					.defaultSuccessUrl("/")
-					.permitAll()
-					.and()
+					.disable()
+				.httpBasic()
+					.disable()
 				.logout()
-					.logoutUrl("/logout")
-					.logoutSuccessUrl("/")
-					.and()
+					.disable()
 				.rememberMe()
-					.rememberMeParameter("remember-me")
-					.tokenValiditySeconds(300)
-					.and()
+					.disable()
 				/**
 				 * HTTP 요청을 HTTPS 요청으로 리다이렉트
 				 */
@@ -153,12 +165,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 					.accessDeniedHandler(accessDeniedHandler())
 					.and()
 				.sessionManagement()
-					.sessionFixation().changeSessionId()
-					.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-					.invalidSessionUrl("/")
-					.maximumSessions(1)
-					.maxSessionsPreventsLogin(false)
-					.and()
+					.disable()
 		;
 	}
 }

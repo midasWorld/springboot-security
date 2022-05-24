@@ -8,6 +8,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,5 +39,11 @@ public class User {
 
 	public void setGroup(Group group) {
 		this.group = group;
+	}
+
+	public void checkPassword(PasswordEncoder passwordEncoder, String credentials) {
+		if (!passwordEncoder.matches(credentials, passwd)) {
+			throw new IllegalArgumentException("Bad credentials");
+		}
 	}
 }

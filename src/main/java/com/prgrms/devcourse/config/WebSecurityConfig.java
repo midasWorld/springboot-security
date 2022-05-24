@@ -22,6 +22,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -30,9 +31,11 @@ import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecu
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
+import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.prgrms.devcourse.jwt.Jwt;
+import com.prgrms.devcourse.jwt.JwtAuthenticationFilter;
 import com.prgrms.devcourse.user.UserService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -131,6 +134,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		);
 	}
 
+	@Bean
+	public JwtAuthenticationFilter jwtAuthenticationFilter() {
+		Jwt jwt = getApplicationContext().getBean(Jwt.class);
+		return new JwtAuthenticationFilter(jwtConfig.getHeader(), jwt);
+	}
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
@@ -165,7 +174,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 					.accessDeniedHandler(accessDeniedHandler())
 					.and()
 				.sessionManagement()
-					.disable()
+					.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+					.and()
+				.addFilterAfter(jwtAuthenticationFilter(), SecurityContextPersistenceFilter.class)
 		;
 	}
 }

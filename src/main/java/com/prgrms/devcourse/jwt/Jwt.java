@@ -64,7 +64,7 @@ public class Jwt {
 			}
 			Claim roles = decodedJWT.getClaim("roles");
 			if (!roles.isNull()) {
-				this.roles = username.asArray(String.class);
+				this.roles = roles.asArray(String.class);
 			}
 			this.iat = decodedJWT.getIssuedAt();
 			this.exp = decodedJWT.getExpiresAt();

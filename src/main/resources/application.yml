@@ -11,13 +11,17 @@ spring:
       name: user
       password: user123
       roles: USER
+  session:
+    store-type: jdbc
+    jdbc:
+      initialize-schema: never
   h2:
     console:
       enabled: true
       path: /h2-console
   datasource:
     driver-class-name: org.h2.Driver
-    url: "jdbc:h2:mem:spring_security;MODE=MYSQL;DB_CLOSE_DELAY=-1"
+    url: "jdbc:h2:file:./database/spring_security.db;MODE=MYSQL;DB_CLOSE_DELAY=-1"
     username: sa
     password:
     hikari:
@@ -27,7 +31,8 @@ spring:
   sql:
     init:
       platform: h2
-      schema-locations: classpath:sql/schema_new.sql
+      mode: never
+      schema-locations: classpath:sql/schema_new.sql, classpath:org/springframework/session/jdbc/schema-h2.sql
       data-locations: classpath:sql/data_new.sql
       encoding: UTF-8
   jpa:

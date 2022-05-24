@@ -30,3 +30,11 @@ spring:
       schema-locations: classpath:sql/schema_new.sql
       data-locations: classpath:sql/data_new.sql
       encoding: UTF-8
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    generate-ddl: true
+    properties:
+      hibernate:
+        format_sql: true

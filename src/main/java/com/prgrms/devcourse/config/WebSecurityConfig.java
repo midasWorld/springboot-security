@@ -35,6 +35,8 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import com.prgrms.devcourse.user.UserService;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -43,36 +45,21 @@ import lombok.extern.slf4j.Slf4j;
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	private DataSource dataSource;
+	private UserService userService;
 
 	@Autowired
 	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
 
+	@Autowired
+	public void setUserService(UserService userService) {
+		this.userService = userService;
+	}
+
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		auth.jdbcAuthentication()
-			.dataSource(dataSource)
-			.usersByUsernameQuery(
-				"SELECT " +
-					"login_id, passwd, true " +
-				"FROM " +
-					"USERS " +
-				"WHERE " +
-					"login_id = ?"
-			)
-			.groupAuthoritiesByUsername(
-				"SELECT " +
-					"login_id, g.name, p.name " +
-				"FROM " +
-					"users u JOIN groups g ON u.group_id = g.id " +
-				"LEFT JOIN group_permission gp ON g.id = gp.group_id " +
-					"JOIN permissions p ON p.id = gp.permission_id " +
-				"WHERE " +
-					"u.login_id = ?"
-			)
-			.getUserDetailsService().setEnableAuthorities(false)
-		;
+		auth.userDetailsService(userService);
 	}
 
 	@Bean

@@ -9,6 +9,23 @@ spring:
       name: user
       password: user123
       roles: USER
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-name: kakao
+            client-id: da98d0d49427a58f3006d214d508fbcb
+            client-secret: 0Hp1bHTjMthT8Gkh0402INuMQgZhxYzz
+            scope: profile_nickname, profile_image
+            redirect-uri: "http://localhost:8080/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+            client-authentication-method: POST
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
   h2:
     console:
       enabled: true

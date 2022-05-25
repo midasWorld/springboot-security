@@ -14,7 +14,6 @@ import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.expression.SecurityExpressionHandler;
 import org.springframework.security.access.vote.UnanimousBased;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -30,13 +29,11 @@ import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
-import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.prgrms.devcourse.jwt.Jwt;
 import com.prgrms.devcourse.jwt.JwtAuthenticationFilter;
-import com.prgrms.devcourse.jwt.JwtAuthenticationProvider;
-import com.prgrms.devcourse.jwt.JwtSecurityContextRepository;
+import com.prgrms.devcourse.oauth2.OAuth2AuthenticationSuccessHandler;
 import com.prgrms.devcourse.user.UserService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -117,16 +114,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		);
 	}
 
-	@Bean
-	public JwtAuthenticationProvider jwtAuthenticationProvider(Jwt jwt, UserService userService) {
-		return new JwtAuthenticationProvider(jwt, userService);
-	}
+	// @Bean
+	// public JwtAuthenticationProvider jwtAuthenticationProvider(Jwt jwt, UserService userService) {
+	// 	return new JwtAuthenticationProvider(jwt, userService);
+	// }
 
-	@Bean
-	@Override
-	public AuthenticationManager authenticationManagerBean() throws Exception {
-		return super.authenticationManagerBean();
-	}
+	// @Bean
+	// @Override
+	// public AuthenticationManager authenticationManagerBean() throws Exception {
+	// 	return super.authenticationManagerBean();
+	// }
 
 	// TODO 🤔 순환 참조 오류 발생되는데.... 뭐가 문제인것인가
 	// @Autowired
@@ -139,9 +136,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		return new JwtAuthenticationFilter(jwtConfig.getHeader(), jwt);
 	}
 
-	public SecurityContextRepository securityContextRepository() {
+	// public SecurityContextRepository securityContextRepository() {
+	// 	Jwt jwt = getApplicationContext().getBean(Jwt.class);
+	// 	return new JwtSecurityContextRepository(jwtConfig.getHeader(), jwt);
+	// }
+
+	@Bean
+	public OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler() {
 		Jwt jwt = getApplicationContext().getBean(Jwt.class);
-		return new JwtSecurityContextRepository(jwtConfig.getHeader(), jwt);
+		UserService userService = getApplicationContext().getBean(UserService.class);
+		return new OAuth2AuthenticationSuccessHandler(jwt, userService);
 	}
 
 
@@ -179,10 +183,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 					.accessDeniedHandler(accessDeniedHandler())
 					.and()
 				.securityContext()
-					.securityContextRepository(securityContextRepository())
+					// .securityContextRepository(securityContextRepository())
 					.and()
 				.sessionManagement()
 					.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+					.and()
+				.oauth2Login()
+					.successHandler(oAuth2AuthenticationSuccessHandler())
 					.and()
 				.addFilterAfter(jwtAuthenticationFilter(), SecurityContextPersistenceFilter.class)
 		;
